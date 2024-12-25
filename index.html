@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WikiWise</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #252526;
+            color: #f4f4f9;
+            padding: 20px;
+            text-align: center;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        .search-bar {
+            max-width: 600px;
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: #2d2d2d;
+            color: #f4f4f9;
+        }
+
+        .search-bar button {
+            padding: 10px 20px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .search-bar button:hover {
+            background-color: #005f99;
+        }
+
+        .results {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #252526;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+        }
+
+        .results ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .results li {
+            margin: 10px 0;
+        }
+
+        .results a {
+            color: #007acc;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .results a:hover {
+            text-decoration: underline;
+        }
+
+        .article-options {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .article-options button {
+            padding: 10px 20px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+
+        .article-options button:hover {
+            background-color: #005f99;
+        }
+
+        .article-summary, .article-quiz {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #252526;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            display: none;
+        }
+
+        .article-summary h2, .article-quiz h2 {
+            margin-top: 0;
+        }
+
+        .article-quiz form {
+            margin-top: 20px;
+        }
+
+        .article-quiz .question {
+            margin-bottom: 20px;
+        }
+
+        .article-quiz .answers {
+            margin-left: 20px;
+        }
+
+        .article-quiz button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .article-quiz button:hover {
+            background-color: #005f99;
+        }
+
+        .quiz-results {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 5px;
+        }
+
+        .quiz-results p {
+            margin: 5px 0;
+        }
+
+        .quiz-score {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>WikiWise</h1>
+        <p>Search for Wikipedia articles and explore them interactively</p>
+    </header>
+
+    <main>
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Enter a keyword">
+            <button onclick="searchArticles()">Search</button>
+        </div>
+
+        <div class="results" id="results">
+            <h2>Search Results</h2>
+            <ul id="results-list"></ul>
+        </div>
+
+        <div id="article-options" class="article-options" style="display: none;">
+            <h2 id="article-title"></h2>
+            <button onclick="summarizeArticle()">Summarize Article</button>
+            <button onclick="getQuiz()">Get Quiz</button>
+        </div>
+
+        <div id="article-summary" class="article-summary">
+            <h2>Summary</h2>
+            <p id="summary-content"></p>
+        </div>
+
+        <div id="article-quiz" class="article-quiz">
+            <h2>Quiz</h2>
+            <form id="quiz-form"></form>
+            <div id="quiz-results" class="quiz-results" style="display: none;"></div>
+        </div>
+    </main>
+
+    <script>
+        async function searchArticles() {
+            const query = document.getElementById('search-input').value;
+            const resultsList = document.getElementById('results-list');
+
+            // Clear previous results
+            resultsList.innerHTML = '';
+            document.getElementById('article-options').style.display = 'none';
+            document.getElementById('article-summary').style.display = 'none';
+            document.getElementById('article-quiz').style.display = 'none';
+
+            if (!query) {
+                alert('Please enter a keyword to search!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/search?query=${query}`);
+                const results = await response.json();
+
+                if (results.length === 0) {
+                    resultsList.innerHTML = '<li>No results found.</li>';
+                    return;
+                }
+
+                results.forEach(title => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="#" onclick="selectArticle('${title}')">${title}</a>`;
+                    resultsList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error fetching search results:', error);
+                alert('An error occurred while fetching search results. Please try again.');
+            }
+        }
+
+        function selectArticle(title) {
+            document.getElementById('article-title').innerText = title;
+            document.getElementById('article-options').style.display = 'block';
+        }
+
+        async function summarizeArticle() {
+            const title = document.getElementById('article-title').innerText;
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/summarize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title }),
+                });
+
+                const data = await response.json();
+                if (data.summary) {
+                    const summaryContent = document.getElementById('summary-content');
+                    summaryContent.innerText = data.summary;
+                    document.getElementById('article-summary').style.display = 'block';
+                } else {
+                    alert(data.error || 'Failed to retrieve summary.');
+                }
+            } catch (error) {
+                console.error('Error fetching summary:', error);
+                alert('An error occurred while fetching the summary. Please try again.');
+            }
+        }
+
+        async function getQuiz() {
+            const title = document.getElementById('article-title').innerText;
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/quiz', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title }),
+                });
+
+                const data = await response.json();
+                if (data.quiz) {
+                    const quizForm = document.getElementById('quiz-form');
+                    quizForm.innerHTML = '';
+
+                    const questions = data.quiz.split('\n\n');
+                    questions.forEach((questionBlock, index) => {
+                        const [question, ...options] = questionBlock.split('\n');
+
+                        if (question.trim()) {
+                            const questionDiv = document.createElement('div');
+                            questionDiv.className = 'question';
+
+                            const questionLabel = document.createElement('label');
+                            questionLabel.innerText = `${index + 1}. ${question.trim()}`;
+                            questionDiv.appendChild(questionLabel);
+
+                            const answersDiv = document.createElement('div');
+                            answersDiv.className = 'answers';
+
+                            options.forEach((option, i) => {
+                                const optionWrapper = document.createElement('div');
+                                const input = document.createElement('input');
+                                input.type = 'radio';
+                                input.name = `question-${index}`;
+                                input.value = option.trim();
+                                input.id = `question-${index}-option-${i}`;
+
+                                const label = document.createElement('label');
+                                label.htmlFor = `question-${index}-option-${i}`;
+                                label.innerText = option.trim();
+
+                                optionWrapper.appendChild(input);
+                                optionWrapper.appendChild(label);
+                                answersDiv.appendChild(optionWrapper);
+                            });
+
+                            questionDiv.appendChild(answersDiv);
+                            quizForm.appendChild(questionDiv);
+                        }
+                    });
+
+                    const submitButton = document.createElement('button');
+                    submitButton.type = 'button';
+                    submitButton.innerText = 'Submit Quiz';
+                    submitButton.onclick = evaluateQuiz;
+                    quizForm.appendChild(submitButton);
+
+                    document.getElementById('article-quiz').style.display = 'block';
+                } else {
+                    alert(data.error || 'Failed to generate quiz.');
+                }
+            } catch (error) {
+                console.error('Error generating quiz:', error);
+                alert('An error occurred while generating the quiz. Please try again.');
+            }
+        }
+
+        function evaluateQuiz() {
+            const quizForm = document.getElementById('quiz-form');
+            const selectedAnswers = new FormData(quizForm);
+            const resultsDiv = document.getElementById('quiz-results');
+            resultsDiv.innerHTML = '';
+            resultsDiv.style.display = 'block';
+
+            let correctAnswers = 0;
+            let totalQuestions = 0;
+
+            for (const [question, answer] of selectedAnswers.entries()) {
+                totalQuestions++;
+                // Here, assume that correct answers are pre-defined (replace "ANSWER" with your logic)
+                const correctAnswer = "ANSWER"; // This needs to be replaced with actual logic
+                const resultParagraph = document.createElement('p');
+
+                if (answer === correctAnswer) {
+                    correctAnswers++;
+                    resultParagraph.innerText = `${question}: Correct`;
+                } else {
+                    resultParagraph.innerText = `${question}: Incorrect (Correct Answer: ${correctAnswer})`;
+                }
+
+                resultsDiv.appendChild(resultParagraph);
+            }
+
+            const scoreParagraph = document.createElement('p');
+            scoreParagraph.className = 'quiz-score';
+            scoreParagraph.innerText = `Your Score: ${correctAnswers} / ${totalQuestions}`;
+            resultsDiv.appendChild(scoreParagraph);
+        }
+    </script>
+</body>
+</html>

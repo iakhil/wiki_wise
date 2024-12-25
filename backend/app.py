@@ -26,12 +26,6 @@ client = OpenAI(
 wikipedia.set_lang("en")
 
 
-
-
-@app.route('/')
-def home():
-    return render_template('index.html')
-
 @app.route('/search', methods=['GET'])
 def search():
     query = request.args.get('query')

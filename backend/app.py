@@ -94,7 +94,7 @@ def quiz():
     if not content:
         return jsonify({'error': 'Content is required'}), 400
 
-    prompt = f"DO NOT USE ANY ASTERISKS. Generate 5 multiple-choice quiz questions based on this content:\n\n{content}"
+    prompt = f"DO NOT USE ANY ASTERISKS AND DO NOT ADD ANYTHING OTHER THAN JSON. Generate 5 multiple-choice quiz questions based on this content:\n\n{content}. PRODUCE THE OUTPUT IN JSON in the format of 'question, options, correct answer."
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{
@@ -106,6 +106,7 @@ def quiz():
         max_tokens=500
     )
     res = response.choices[0].message.content
+    print("RES:", res)
     return jsonify({'quiz': res.strip()})
 
 if __name__ == '__main__':

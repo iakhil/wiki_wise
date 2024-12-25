@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="frontend/favicon.png"
     <title>WikiWise</title>
     <style>
         body {
@@ -279,46 +280,51 @@
                 });
 
                 const data = await response.json();
-                if (data.questions) {
+                if (data.quiz) {
                     const quizForm = document.getElementById('quiz-form');
                     quizForm.innerHTML = '';
 
-                    data.questions.forEach((q, index) => {
-                        const questionDiv = document.createElement('div');
-                        questionDiv.className = 'question';
+                    const questions = data.quiz.split('\n\n');
+                    questions.forEach((questionBlock, index) => {
+                        const [question, ...options] = questionBlock.split('\n');
 
-                        const questionLabel = document.createElement('label');
-                        questionLabel.innerText = `${index + 1}. ${q.question}`;
-                        questionDiv.appendChild(questionLabel);
+                        if (question.trim()) {
+                            const questionDiv = document.createElement('div');
+                            questionDiv.className = 'question';
 
-                        const answersDiv = document.createElement('div');
-                        answersDiv.className = 'answers';
+                            const questionLabel = document.createElement('label');
+                            questionLabel.innerText = `${index + 1}. ${question.trim()}`;
+                            questionDiv.appendChild(questionLabel);
 
-                        q.options.forEach((option, i) => {
-                            const optionWrapper = document.createElement('div');
-                            const input = document.createElement('input');
-                            input.type = 'radio';
-                            input.name = `question-${index}`;
-                            input.value = option.trim();
-                            input.id = `question-${index}-option-${i}`;
+                            const answersDiv = document.createElement('div');
+                            answersDiv.className = 'answers';
 
-                            const label = document.createElement('label');
-                            label.htmlFor = `question-${index}-option-${i}`;
-                            label.innerText = option.trim();
+                            options.forEach((option, i) => {
+                                const optionWrapper = document.createElement('div');
+                                const input = document.createElement('input');
+                                input.type = 'radio';
+                                input.name = `question-${index}`;
+                                input.value = option.trim();
+                                input.id = `question-${index}-option-${i}`;
 
-                            optionWrapper.appendChild(input);
-                            optionWrapper.appendChild(label);
-                            answersDiv.appendChild(optionWrapper);
-                        });
+                                const label = document.createElement('label');
+                                label.htmlFor = `question-${index}-option-${i}`;
+                                label.innerText = option.trim();
 
-                        questionDiv.appendChild(answersDiv);
-                        quizForm.appendChild(questionDiv);
+                                optionWrapper.appendChild(input);
+                                optionWrapper.appendChild(label);
+                                answersDiv.appendChild(optionWrapper);
+                            });
+
+                            questionDiv.appendChild(answersDiv);
+                            quizForm.appendChild(questionDiv);
+                        }
                     });
 
                     const submitButton = document.createElement('button');
                     submitButton.type = 'button';
                     submitButton.innerText = 'Submit Quiz';
-                    submitButton.onclick = () => evaluateQuiz(data.questions);
+                    submitButton.onclick = evaluateQuiz;
                     quizForm.appendChild(submitButton);
 
                     document.getElementById('article-quiz').style.display = 'block';
@@ -331,7 +337,7 @@
             }
         }
 
-        function evaluateQuiz(questions) {
+        function evaluateQuiz() {
             const quizForm = document.getElementById('quiz-form');
             const selectedAnswers = new FormData(quizForm);
             const resultsDiv = document.getElementById('quiz-results');
@@ -339,24 +345,27 @@
             resultsDiv.style.display = 'block';
 
             let correctAnswers = 0;
+            let totalQuestions = 0;
 
-            questions.forEach((q, index) => {
-                const selected = selectedAnswers.get(`question-${index}`);
+            for (const [question, answer] of selectedAnswers.entries()) {
+                totalQuestions++;
+                // Here, assume that correct answers are pre-defined (replace "ANSWER" with your logic)
+                const correctAnswer = "ANSWER"; // This needs to be replaced with actual logic
                 const resultParagraph = document.createElement('p');
 
-                if (selected === q.answer) {
+                if (answer === correctAnswer) {
                     correctAnswers++;
-                    resultParagraph.innerText = `${index + 1}. Correct`;
+                    resultParagraph.innerText = `${question}: Correct`;
                 } else {
-                    resultParagraph.innerText = `${index + 1}. Incorrect (Correct Answer: ${q.answer})`;
+                    resultParagraph.innerText = `${question}: Incorrect (Correct Answer: ${correctAnswer})`;
                 }
 
                 resultsDiv.appendChild(resultParagraph);
-            });
+            }
 
             const scoreParagraph = document.createElement('p');
             scoreParagraph.className = 'quiz-score';
-            scoreParagraph.innerText = `Your Score: ${correctAnswers} / ${questions.length}`;
+            scoreParagraph.innerText = `Your Score: ${correctAnswers} / ${totalQuestions}`;
             resultsDiv.appendChild(scoreParagraph);
         }
     </script>

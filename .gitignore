@@ -22,7 +22,7 @@ logs
 
 # Build outputs
 dist/
-build/
+build
 
 # Environment files
 .env

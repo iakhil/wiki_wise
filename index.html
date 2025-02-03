@@ -15,7 +15,7 @@
         }
 
         header {
-            background-color: #252526;Yes
+            background-color: #252526;
             color: #f4f4f9;
             padding: 20px;
             text-align: center;
@@ -339,6 +339,43 @@
         .quiz-results p[style*="color: #f44336"] {
             border-left: 4px solid #f44336;
         }
+
+        .topic-suggestions {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #252526;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+        }
+
+        .topic-suggestions h3 {
+            color: #007acc;
+            margin-top: 0;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .topic-suggestions .topic {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #363636;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            font-size: 15px;
+        }
+
+        .topic-suggestions .topic:hover {
+            background: #404040;
+            border-color: #007acc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -351,6 +388,11 @@
         <div class="search-bar">
             <input type="text" id="search-input" placeholder="Enter a keyword">
             <button onclick="searchArticles()">Search</button>
+        </div>
+
+        <div class="topic-suggestions">
+            <h3>Suggested Topics</h3>
+            <div id="suggested-topics"></div>
         </div>
 
         <div class="results" id="results">
@@ -377,6 +419,146 @@
     </main>
 
     <script>
+        const topicsData = {
+            "topics": [
+                {
+                    "category": "History & Archaeology",
+                    "topics": [
+                        "Göbekli Tepe",
+                        "Mohenjo-Daro",
+                        "Battle of Thermopylae",
+                        "The Anarchy (England, 12th Century)",
+                        "The Rosetta Stone",
+                        "Hannibal's Alps Crossing",
+                        "The Sutton Hoo Treasure",
+                        "Collapse of the Bronze Age",
+                        "The Library of Alexandria",
+                        "Zheng He's Voyages"
+                    ]
+                },
+                {
+                    "category": "Science & Technology",
+                    "topics": [
+                        "Quantum Entanglement",
+                        "CRISPR Gene Editing",
+                        "The Fermi Paradox",
+                        "Dark Matter and Dark Energy",
+                        "Von Neumann Probes",
+                        "The Turing Test",
+                        "Graphene and Its Applications",
+                        "The Kardashev Scale",
+                        "Bose-Einstein Condensate",
+                        "Neuralink"
+                    ]
+                },
+                {
+                    "category": "Philosophy & Psychology",
+                    "topics": [
+                        "The Ship of Theseus",
+                        "The Chinese Room Argument",
+                        "Socrates' Trial",
+                        "The Trolley Problem",
+                        "Freudian Defense Mechanisms",
+                        "Existential Nihilism",
+                        "Dunbar's Number",
+                        "The Bicameral Mind Hypothesis",
+                        "The Lucifer Effect",
+                        "Simulation Hypothesis"
+                    ]
+                },
+                {
+                    "category": "Physics & Astronomy",
+                    "topics": [
+                        "Oumuamua: The Interstellar Visitor",
+                        "The Wow! Signal",
+                        "White Holes",
+                        "The Alcubierre Warp Drive",
+                        "Planck Length",
+                        "Heat Death of the Universe",
+                        "Black Hole Information Paradox",
+                        "The Anthropic Principle",
+                        "Quantum Tunneling",
+                        "Neutron Stars and Magnetars"
+                    ]
+                },
+                {
+                    "category": "Mythology & Folklore",
+                    "topics": [
+                        "The Green Man",
+                        "The Trickster Archetype",
+                        "Hollow Earth Mythology",
+                        "The Beast of Gévaudan",
+                        "The Djinn in Islamic Mythology",
+                        "The Wendigo Legend",
+                        "The Bunyip",
+                        "The Changelings",
+                        "Shangri-La",
+                        "The Myth of El Dorado"
+                    ]
+                }
+            ]
+        };
+
+        function getRandomTopics() {
+            // Get 5 random categories
+            const categories = topicsData.topics
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 5);
+            
+            // Get 1 random topic from each category
+            return categories.map(category => {
+                const randomTopic = category.topics[Math.floor(Math.random() * category.topics.length)];
+                return {
+                    category: category.category,
+                    topic: randomTopic
+                };
+            });
+        }
+
+        function getCategoryIcon(category) {
+            switch (category) {
+                case "History & Archaeology":
+                    return "🏺"; // amphora
+                case "Science & Technology":
+                    return "🔬"; // microscope
+                case "Philosophy & Psychology":
+                    return "🧠"; // brain
+                case "Physics & Astronomy":
+                    return "🌌"; // milky way
+                case "Mythology & Folklore":
+                    return "🐲"; // dragon
+                case "Linguistics & Communication":
+                    return "💭"; // speech bubble
+                case "Geography & Exploration":
+                    return "🗺️"; // world map
+                case "Modern Culture & Neologisms":
+                    return "🎮"; // gaming
+                case "Mathematics & Logic":
+                    return "🔢"; // numbers
+                case "Economics & Politics":
+                    return "📊"; // chart
+                default:
+                    return "📚"; // book as default
+            }
+        }
+
+        function displaySuggestedTopics() {
+            const suggestedTopicsDiv = document.getElementById('suggested-topics');
+            const randomTopics = getRandomTopics();
+            
+            suggestedTopicsDiv.innerHTML = randomTopics
+                .map(item => `
+                    <span class="topic" 
+                          onclick="document.getElementById('search-input').value = '${item.topic}'; searchArticles();"
+                          title="${item.category}">
+                        ${getCategoryIcon(item.category)} ${item.topic}
+                    </span>
+                `).join('');
+        }
+
+        // Call this when the page loads
+        window.onload = displaySuggestedTopics;
+
         async function searchArticles() {
             const query = document.getElementById('search-input').value;
             const resultsList = document.getElementById('results-list');
